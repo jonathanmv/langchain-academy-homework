@@ -34,14 +34,36 @@ builder.add_node("tool_calling_llm", tool_calling_llm_node)
 builder.add_node("tools", ToolNode([multiply]))
 builder.add_edge(START, "tool_calling_llm")
 # tools_condition checks if the last message is the response of a tool call
-# if it's a tool call, it will route to the "tools" node (how?)
-# if it's not a tool call, it will route to the "END" node (how?)
+# if it's a tool call, it will route to the "tools" node (hardcoded)
+# if it's not a tool call, it will route to the "END" node (hardcoded)
 builder.add_conditional_edges("tool_calling_llm", tools_condition)
 builder.add_edge("tools", END)
 
 graph = builder.compile()
 
 print(graph.get_graph().draw_ascii())
+
+#         +-----------+
+#         | __start__ |
+#         +-----------+
+#               *
+#               *
+#               *
+#     +------------------+
+#     | tool_calling_llm |
+#     +------------------+
+#          ..        ..
+#        ..            .
+#       .               ..
+# +-------+               .
+# | tools |             ..
+# +-------+            .
+#          **        ..
+#            **    ..
+#              *  .
+#          +---------+
+#          | __end__ |
+#          +---------+
 
 print("\nTesting non-multiplication message")
 result = graph.invoke({ "messages": [HumanMessage(content="Hi, this has nothing to do with multiplying.")] })

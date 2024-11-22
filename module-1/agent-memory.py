@@ -3,12 +3,13 @@ from pathlib import Path
 env_path = Path(__file__).parent.parent / '.env'
 load_dotenv(env_path)
 
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, SystemMessage
 
 from langgraph.graph import StateGraph, START
 from langgraph.graph import MessagesState
 from langgraph.prebuilt import ToolNode, tools_condition
+from langgraph.checkpoint.memory import MemorySaver
 
 
 def multiply(a: int, b: int) -> int:
@@ -40,15 +41,18 @@ def divide(a: int, b: int) -> int:
 
 tools = [multiply, sum, divide]
 
-llm = ChatOpenAI(model="gpt-4o")
+
+llm = ChatOpenAI(model="gpt-4o-mini")
 llm_with_tools = llm.bind_tools(tools)
 
+
+
+system_message = SystemMessage(content="You are a helpful assistant that can multiply, sum, and divide numbers.")
+
 def agent_node(state: MessagesState) -> MessagesState:
-    messages = [
-        SystemMessage(content="You are a helpful assistant that can multiply, sum, and divide numbers."),
-        *state["messages"]
-    ]
-    return { "messages": [llm_with_tools.invoke(messages)]}
+    messages = [system_message] + state["messages"]
+    return { "messages": [llm_with_tools.invoke(messages)] }
+
 
 builder = StateGraph(MessagesState)
 builder.add_node("agent", agent_node)
@@ -58,10 +62,10 @@ builder.add_edge(START, "agent")
 builder.add_conditional_edges("agent", tools_condition)
 builder.add_edge("tools", "agent")
 
-graph = builder.compile()
+memory = MemorySaver()
+react_graph_memory = builder.compile(checkpointer=memory)
 
-print(graph.get_graph().draw_ascii())
-
+print(react_graph_memory.get_graph().draw_ascii())
 #         +-----------+
 #         | __start__ |
 #         +-----------+
@@ -79,18 +83,17 @@ print(graph.get_graph().draw_ascii())
 # +-------+         +---------+
 
 
-print("\nTesting non-multiplication message")
-result = graph.invoke({ "messages": [HumanMessage(content="Hi, this has nothing to do with math!")] })
+config = { "configurable": { "thread_id": "1" }}
+messages = [HumanMessage(content="What is 3 times 4?")]
+
+result = react_graph_memory.invoke({ "messages": messages}, config)
+
 for msg in result["messages"]:
     msg.pretty_print()
 
-print("\nTesting arithmetic message")
+# Add more messages to test memory
+messages = [HumanMessage(content="how much is that divided by 6?")] # 2
+result = react_graph_memory.invoke({ "messages": messages}, config)
 
-result = graph.invoke({ "messages": [
-    HumanMessage(content="multiply 2 and 3 and "), # 6
-    HumanMessage(content="substract 1 to the output."), # 5
-    HumanMessage(content="Now add 10 to that result and "), # 15
-    HumanMessage(content="finally divide by 3."), # 5
-] })
 for msg in result["messages"]:
     msg.pretty_print()

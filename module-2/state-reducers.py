@@ -91,9 +91,6 @@ except InvalidUpdateError as e:
     # Use an Annotated key to handle multiple values.
     print("Expected InvalidUpdateError:", e)
 
-# print(result)
-# # { "foo": 3 }
-
 class AnnotatedState(BaseModel):
     foo: Annotated[list[int], add]
 
@@ -128,15 +125,6 @@ try:
     result = graph.invoke({ "foo": 0 })
 except TypeError as e:
     print("Expected TypeError:", e)
-
-def last_int(list: None | int | list[int]) -> int:
-    if list is None:
-        return 0
-    if isinstance(list, int):
-        return list
-    if len(list) == 0:
-        return 0
-    return list[-1]
 
 def merge_lists_reducer(left: list | int | None, right: list | int | None) -> list[int]:
     if isinstance(left, int):

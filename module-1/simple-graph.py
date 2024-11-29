@@ -1,6 +1,5 @@
 import random
 from typing import Literal
-from IPython.display import Image
 from langgraph.graph import StateGraph, START, END
 
 # State: Defines the input schema for all nodes in the graph

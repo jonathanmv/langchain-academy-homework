@@ -50,8 +50,41 @@ while True:
         print(f"Executing node '{next_node()}' with input '{chunk['input']}'")
 
     # Interrupted or finished
-    next_node = next_node()
-    print(f"\nNext node: {next_node}")
-    if next_node is None:
+    print(f"\nNext node: {next_node()}")
+    if next_node() is None:
         print("Your string was valid. Bye!")
         break
+
+
+# ###################### EXAMPLE 1 ######################
+# Enter a string or q to quit: asdf
+# Executing node 'step_1' with input 'asdf'
+# Step 1
+# Executing node 'step_1' with input 'asdf'
+# Step 2
+# Executing node 'None' with input 'asdf'
+# Step 3
+# Executing node 'None' with input 'asdf'
+#
+# Next node: None
+# Your string was valid. Bye!
+
+# In the previous run, you can see that the node is either 'step_1' or 'None'.
+# It seems like the next property in the state is not updated until the
+# graph is interrupted or finished.
+
+
+# ###################### EXAMPLE 2 ######################
+# Enter a string or q to quit: jonathanmv
+# Executing node 'step_1' with input 'jonathanmv'
+# Step 1
+# Executing node 'step_1' with input 'jonathanmv'
+# Step 2
+# Interrupting because input is 10 characters long...
+
+# Next node: step_2
+
+# Enter a string or q to quit:
+
+# In this run, you can see that the next node is 'step_2'.
+# This is the graph was interrupted at that node and that node will run again.

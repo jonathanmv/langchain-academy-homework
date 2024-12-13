@@ -5,7 +5,7 @@ load_dotenv(env_path)
 
 import operator
 from typing import TypedDict, Annotated
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field
 from langgraph.graph import StateGraph, START, END
 from langgraph.constants import Send
 
@@ -40,7 +40,7 @@ def get_topic_from_user_node(state):
 
 def generate_subjects_node(state):
     class Subjects(BaseModel):
-        subjects: list[str]
+        subjects: list[str] = Field(description="A list of 3 sub-topics related to the topic")
 
     prompt = subjects_prompt.format(topic=state["topic"])
     response = llm.with_structured_output(Subjects).invoke(prompt)
